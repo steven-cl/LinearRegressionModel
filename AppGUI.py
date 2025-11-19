@@ -156,8 +156,8 @@ def crear_tabla_metodos(container, metodo_seleccionado):
 
     rows = {}
     nombres = [
-        ("linear_sklearn", "Regresión Lineal (Sklearn)"),
-        ("exponential", "Regresión Exponencial"),
+        ("Lineal", "Regresión Lineal"),
+        ("Exponencial", "Regresión Exponencial"),
     ]
     
     for i, (key, name) in enumerate(nombres, start=1):
@@ -255,7 +255,7 @@ def actualizar_tabla(rows, resultados):
             comps["rmse"].config(text=f"{r['rmse']:.4f}")
             comps["mse"].config(text=f"{r['mse']:.4f}")
             
-            if key == "linear_sklearn":
+            if key == "Lineal":
                 comps["formula"].config(
                     text=f"y = {r['intercept']:.4f} + {r['coef']:.4f}x"
                 )
@@ -272,22 +272,10 @@ def actualizar_tabla(rows, resultados):
 
 
 def mostrar_grafico(ax, canvas, lbl_info, metodo, resultados, xs, ys):
-    """
-    Muestra el gráfico del modelo seleccionado junto con su información.
-    
-    Args:
-        ax: Ejes del gráfico matplotlib
-        canvas: Canvas de matplotlib
-        lbl_info: Label donde se mostrará la información
-        metodo: Nombre del método seleccionado
-        resultados: Diccionario con los resultados de los métodos
-        xs: Lista de valores X
-        ys: Lista de valores y
-    """
     if metodo not in resultados or resultados[metodo] is None:
         messagebox.showerror("Error", "Primero calcule los modelos.")
         return False
-    
+
     X = np.array(xs)
     y = np.array(ys)
     r = resultados[metodo]
@@ -295,21 +283,28 @@ def mostrar_grafico(ax, canvas, lbl_info, metodo, resultados, xs, ys):
     ax.clear()
     ax.scatter(X, y, color="#2980b9", label="Datos")
 
-    orden = np.argsort(X)
-    X_sorted = X[orden]
+    # Grid fino para suavizar la curva
+    x_min, x_max = X.min(), X.max()
+    X_grid = np.linspace(x_min, x_max, 200)
 
-    if metodo == "linear_sklearn":
-        y_line = r["intercept"] + r["coef"] * X_sorted
+    if metodo == "Lineal":
+        y_line = r["intercept"] + r["coef"] * X_grid
         formula = f"y = {r['intercept']:.6f} + {r['coef']:.6f}x"
-    else:
-        y_line = r["a"] * np.exp(r["b"] * X_sorted)
+    else:  # Exponencial
+        y_line = r["a"] * np.exp(r["b"] * X_grid)
         formula = f"y = {r['a']:.6f} * e^{r['b']:.6f}x"
 
-    ax.plot(X_sorted, y_line, color="#e74c3c", label="Modelo")
+    ax.plot(X_grid, y_line, color="#e74c3c", label="Modelo")
+
     ax.set_title("Modelo Seleccionado")
     ax.set_xlabel("X")
     ax.set_ylabel("y")
     ax.legend()
+
+    # Si la diferencia de magnitudes es muy grande, puedes activar escala log en y (opcional):
+    if y.max() / max(y.min(), 1e-9) > 100:  # heurística
+        ax.set_yscale("log")
+
     canvas.draw()
 
     info = (
@@ -372,7 +367,7 @@ def inicializar_interfaz(master):
 
     # Variables de estado
     resultados = {}
-    metodo_seleccionado = tk.StringVar(value="linear_sklearn")
+    metodo_seleccionado = tk.StringVar(value="Lineal")
 
     # Crear scroll frame
     scroll = ScrollableFrame(master)
@@ -406,7 +401,7 @@ def inicializar_interfaz(master):
         resultados_calc = OperationsApp.calcular_todos_modelos(xs, ys)
         
         # Mostrar advertencia si exponencial no es aplicable
-        if resultados_calc["exponential"] is None:
+        if resultados_calc["Exponencial"] is None:
             messagebox.showwarning(
                 "Advertencia", "Exponencial omitida: todos los y deben ser > 0."
             )
