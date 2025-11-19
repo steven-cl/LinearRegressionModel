@@ -114,6 +114,138 @@ def calcular_regresion_exponencial(X, y):
     }
 
 
+def calcular_regresion_potencial(X, y):
+    """
+    Calcula la regresión potencial y = a * x^b usando linealización.
+    
+    Args:
+        X: Array numpy de valores X (shape: n x 1)
+        y: Array numpy de valores y (shape: n)
+        
+    Returns:
+        Diccionario con:
+            - a: Coeficiente a
+            - b: Coeficiente b (exponente)
+            - y_pred: Valores predichos
+            - r2: Coeficiente de determinación R²
+            - mse: Error cuadrático medio
+            - rmse: Raíz del error cuadrático medio
+        None si algún valor de x o y es <= 0
+    """
+    if np.any(X <= 0) or np.any(y <= 0):
+        return None
+    
+    X_log = np.log(X.flatten())
+    Y_log = np.log(y)
+    
+    lr_pot = LinearRegression()
+    lr_pot.fit(X_log.reshape(-1, 1), Y_log)
+    
+    b = lr_pot.coef_[0]
+    a = np.exp(lr_pot.intercept_)
+    y_pred = a * np.power(X.flatten(), b)
+    
+    mse = mean_squared_error(y, y_pred)
+    rmse = np.sqrt(mse)
+    r2 = r2_score(y, y_pred)
+    
+    return {
+        "a": a,
+        "b": b,
+        "y_pred": y_pred,
+        "mse": mse,
+        "rmse": rmse,
+        "r2": r2
+    }
+
+
+def calcular_regresion_logaritmica(X, y):
+    """
+    Calcula la regresión logarítmica y = a + b * ln(x).
+    
+    Args:
+        X: Array numpy de valores X (shape: n x 1)
+        y: Array numpy de valores y (shape: n)
+        
+    Returns:
+        Diccionario con:
+            - a: Término independiente
+            - b: Coeficiente de ln(x)
+            - y_pred: Valores predichos
+            - r2: Coeficiente de determinación R²
+            - mse: Error cuadrático medio
+            - rmse: Raíz del error cuadrático medio
+        None si algún valor de x es <= 0
+    """
+    if np.any(X <= 0):
+        return None
+    
+    X_log = np.log(X)
+    lr_log = LinearRegression()
+    lr_log.fit(X_log, y)
+    
+    a = lr_log.intercept_
+    b = lr_log.coef_[0]
+    y_pred = lr_log.predict(X_log)
+    
+    mse = mean_squared_error(y, y_pred)
+    rmse = np.sqrt(mse)
+    r2 = r2_score(y, y_pred)
+    
+    return {
+        "a": a,
+        "b": b,
+        "y_pred": y_pred,
+        "mse": mse,
+        "rmse": rmse,
+        "r2": r2
+    }
+
+
+def calcular_regresion_polinomial_grado2(X, y):
+    """
+    Calcula la regresión polinomial de grado 2: y = a + bx + cx².
+    
+    Args:
+        X: Array numpy de valores X (shape: n x 1)
+        y: Array numpy de valores y (shape: n)
+        
+    Returns:
+        Diccionario con:
+            - a: Término independiente
+            - b: Coeficiente de x
+            - c: Coeficiente de x²
+            - y_pred: Valores predichos
+            - r2: Coeficiente de determinación R²
+            - mse: Error cuadrático medio
+            - rmse: Raíz del error cuadrático medio
+    """
+    X_flat = X.flatten()
+    X_poly = np.column_stack([np.ones_like(X_flat), X_flat, X_flat**2])
+    
+    lr_poly = LinearRegression(fit_intercept=False)
+    lr_poly.fit(X_poly, y)
+    
+    a = lr_poly.coef_[0]
+    b = lr_poly.coef_[1]
+    c = lr_poly.coef_[2]
+    y_pred = lr_poly.predict(X_poly)
+    
+    mse = mean_squared_error(y, y_pred)
+    rmse = np.sqrt(mse)
+    r2 = r2_score(y, y_pred)
+    
+    return {
+        "a": a,
+        "b": b,
+        "c": c,
+        "y_pred": y_pred,
+        "mse": mse,
+        "rmse": rmse,
+        "r2": r2
+    }
+
+
 def calcular_todos_modelos(xs, ys):
     """
     Calcula todos los modelos de regresión disponibles.
@@ -126,6 +258,9 @@ def calcular_todos_modelos(xs, ys):
         Diccionario con los resultados de cada modelo:
             - "linear_sklearn": Resultados de regresión lineal
             - "exponential": Resultados de regresión exponencial (o None si no es aplicable)
+            - "power": Resultados de regresión potencial (o None si no es aplicable)
+            - "logarithmic": Resultados de regresión logarítmica (o None si no es aplicable)
+            - "polynomial_2": Resultados de regresión polinomial grado 2
     """
     X = np.array(xs).reshape(-1, 1)
     y = np.array(ys)
@@ -137,5 +272,14 @@ def calcular_todos_modelos(xs, ys):
     
     # Calcular regresión exponencial
     resultados["exponential"] = calcular_regresion_exponencial(X, y)
+    
+    # Calcular regresión potencial
+    resultados["power"] = calcular_regresion_potencial(X, y)
+    
+    # Calcular regresión logarítmica
+    resultados["logarithmic"] = calcular_regresion_logaritmica(X, y)
+    
+    # Calcular regresión polinomial de grado 2
+    resultados["polynomial_2"] = calcular_regresion_polinomial_grado2(X, y)
     
     return resultados
