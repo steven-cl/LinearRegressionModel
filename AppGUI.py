@@ -385,7 +385,7 @@ def inicializar_interfaz(master):
     Returns:
         Diccionario con todos los componentes de la interfaz
     """
-    master.title("Regresión Lineal y Exponencial")
+    master.title("Modelos de Regresión")
     master.geometry("900x650")
 
     # Variables de estado
