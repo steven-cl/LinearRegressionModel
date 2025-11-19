@@ -272,10 +272,22 @@ def actualizar_tabla(rows, resultados):
 
 
 def mostrar_grafico(ax, canvas, lbl_info, metodo, resultados, xs, ys):
+    """
+    Muestra el gráfico del modelo seleccionado junto con su información.
+    
+    Args:
+        ax: Ejes del gráfico matplotlib
+        canvas: Canvas de matplotlib
+        lbl_info: Label donde se mostrará la información
+        metodo: Nombre del método seleccionado
+        resultados: Diccionario con los resultados de los métodos
+        xs: Lista de valores X
+        ys: Lista de valores y
+    """
     if metodo not in resultados or resultados[metodo] is None:
         messagebox.showerror("Error", "Primero calcule los modelos.")
         return False
-
+    
     X = np.array(xs)
     y = np.array(ys)
     r = resultados[metodo]
