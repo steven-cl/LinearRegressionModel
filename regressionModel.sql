@@ -1,0 +1,6 @@
+CREATE TABLE regression_model (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_name VARCHAR(100) NOT NULL,
+    x TEXT NOT NULL,
+    y TEXT NOT NULL
+);

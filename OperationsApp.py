@@ -268,10 +268,10 @@ def calcular_todos_modelos(xs, ys):
     resultados = {}
     
     # Calcular regresión lineal
-    resultados["linear_sklearn"] = calcular_regresion_lineal(X, y)
+    resultados["Lineal"] = calcular_regresion_lineal(X, y)
     
     # Calcular regresión exponencial
-    resultados["exponential"] = calcular_regresion_exponencial(X, y)
+    resultados["Exponencial"] = calcular_regresion_exponencial(X, y)
     
     # Calcular regresión potencial
     resultados["power"] = calcular_regresion_potencial(X, y)
