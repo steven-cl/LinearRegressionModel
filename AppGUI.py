@@ -120,7 +120,7 @@ def search_models(container, txt_x, txt_y, id_session_var, btn_editar):
             lbl_name = tk.Label(frame_result, text=model_name, anchor="w", font=("Arial", 10))
             lbl_name.pack(side="left", fill="x", expand=True)
             
-            def use_model(mid=model_id):
+            def use_model(mid=model_id, mname=model_name):
                 """Carga el modelo seleccionado en los campos X e Y."""
                 xy_data = Queries.get_model_xy_by_id(mid)
                 if xy_data:
@@ -137,9 +137,44 @@ def search_models(container, txt_x, txt_y, id_session_var, btn_editar):
                     btn_editar.config(state=tk.NORMAL)
                     
                     messagebox.showinfo("Modelo Cargado", 
-                                       f"Modelo '{model_name}' (ID: {mid}) cargado exitosamente.")
+                                       f"Modelo '{mname}' (ID: {mid}) cargado exitosamente.")
                 else:
                     messagebox.showerror("Error", "No se pudo cargar el modelo.")
+            
+            def delete_model(mid=model_id, mname=model_name):
+                """Elimina el modelo de la base de datos con confirmación."""
+                # Mostrar diálogo de confirmación
+                result = messagebox.askyesno(
+                    "Confirmar Eliminación", 
+                    f"¿Está seguro que desea eliminar el modelo '{mname}' (ID: {mid})?\n\n"
+                    "Esta acción no se puede deshacer."
+                )
+                
+                if result:
+                    try:
+                        success = Queries.delete_model(mid)
+                        if success:
+                            # Si el modelo eliminado era el que estaba cargado, resetear
+                            if id_session_var.get() == mid:
+                                id_session_var.set(0)
+                                btn_editar.config(state=tk.DISABLED)
+                                txt_x.delete("1.0", tk.END)
+                                txt_y.delete("1.0", tk.END)
+                            
+                            messagebox.showinfo("Éxito", 
+                                               f"Modelo '{mname}' (ID: {mid}) eliminado correctamente.")
+                            
+                            # Actualizar resultados de búsqueda
+                            update_search_results()
+                        else:
+                            messagebox.showerror("Error", 
+                                               f"No se pudo eliminar el modelo ID {mid}.")
+                    except Exception as e:
+                        messagebox.showerror("Error", f"Error al eliminar: {e}")
+            
+            btn_delete = tk.Button(frame_result, text="Eliminar", command=delete_model,
+                                  bg="#e74c3c", fg="white", width=10)
+            btn_delete.pack(side="right", padx=2)
             
             btn_use = tk.Button(frame_result, text="Utilizar", command=use_model,
                               bg="#3498db", fg="white", width=10)
