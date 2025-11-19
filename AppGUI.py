@@ -156,8 +156,11 @@ def crear_tabla_metodos(container, metodo_seleccionado):
 
     rows = {}
     nombres = [
-        ("Lineal", "Regresión Lineal"),
+        ("Lineal", "Regresión Lineal (Sklearn)"),
         ("Exponencial", "Regresión Exponencial"),
+        ("potencial", "Regresión Potencial"),
+        ("logaritmica", "Regresión Logarítmica"),
+        ("polinomial_2", "Regresión Polinomial Grado 2"),
     ]
     
     for i, (key, name) in enumerate(nombres, start=1):
@@ -259,8 +262,14 @@ def actualizar_tabla(rows, resultados):
                 comps["formula"].config(
                     text=f"y = {r['intercept']:.4f} + {r['coef']:.4f}x"
                 )
-            else:
+            elif key == "exponential":
                 comps["formula"].config(text=f"y = {r['a']:.4f} * e^{r['b']:.4f}x")
+            elif key == "power":
+                comps["formula"].config(text=f"y = {r['a']:.4f} * x^{r['b']:.4f}")
+            elif key == "logarithmic":
+                comps["formula"].config(text=f"y = {r['a']:.4f} + {r['b']:.4f}*ln(x)")
+            elif key == "polynomial_2":
+                comps["formula"].config(text=f"y = {r['a']:.4f} + {r['b']:.4f}x + {r['c']:.4f}x²")
             
             comps["name"].config(fg="green" if key == mejor_key else "black")
         else:
@@ -302,9 +311,18 @@ def mostrar_grafico(ax, canvas, lbl_info, metodo, resultados, xs, ys):
     if metodo == "Lineal":
         y_line = r["intercept"] + r["coef"] * X_grid
         formula = f"y = {r['intercept']:.6f} + {r['coef']:.6f}x"
-    else:  # Exponencial
-        y_line = r["a"] * np.exp(r["b"] * X_grid)
+    elif metodo == "Exponencial":
+        y_line = r["a"] * np.exp(r["b"] * X_sorted)
         formula = f"y = {r['a']:.6f} * e^{r['b']:.6f}x"
+    elif metodo == "potencial":
+        y_line = r["a"] * np.power(X_sorted, r["b"])
+        formula = f"y = {r['a']:.6f} * x^{r['b']:.6f}"
+    elif metodo == "logaritmica":
+        y_line = r["a"] + r["b"] * np.log(X_sorted)
+        formula = f"y = {r['a']:.6f} + {r['b']:.6f}*ln(x)"
+    elif metodo == "polinomial_2":
+        y_line = r["a"] + r["b"] * X_sorted + r["c"] * X_sorted**2
+        formula = f"y = {r['a']:.6f} + {r['b']:.6f}x + {r['c']:.6f}x²"
 
     ax.plot(X_grid, y_line, color="#e74c3c", label="Modelo")
 
@@ -374,7 +392,7 @@ def inicializar_interfaz(master):
     Returns:
         Diccionario con todos los componentes de la interfaz
     """
-    master.title("Regresión Lineal y Exponencial")
+    master.title("Modelos de Regresión")
     master.geometry("900x650")
 
     # Variables de estado
@@ -412,11 +430,18 @@ def inicializar_interfaz(master):
         # Calcular todos los modelos usando OperationsApp
         resultados_calc = OperationsApp.calcular_todos_modelos(xs, ys)
         
-        # Mostrar advertencia si exponencial no es aplicable
+        # Mostrar advertencias para los modelos que no son aplicables
+        advertencias = []
         if resultados_calc["Exponencial"] is None:
-            messagebox.showwarning(
-                "Advertencia", "Exponencial omitida: todos los y deben ser > 0."
-            )
+            advertencias.append("Exponencial (todos los y deben ser > 0)")
+        if resultados_calc["potencial"] is None:
+            advertencias.append("Potencial (todos los x e y deben ser > 0)")
+        if resultados_calc["logaritmica"] is None:
+            advertencias.append("Logarítmica (todos los x deben ser > 0)")
+        
+        if advertencias:
+            mensaje = "Métodos omitidos:\n- " + "\n- ".join(advertencias)
+            messagebox.showwarning("Advertencia", mensaje)
         
         resultados.clear()
         resultados.update(resultados_calc)
