@@ -274,12 +274,12 @@ def calcular_todos_modelos(xs, ys):
     resultados["Exponencial"] = calcular_regresion_exponencial(X, y)
     
     # Calcular regresión potencial
-    resultados["power"] = calcular_regresion_potencial(X, y)
+    resultados["Potencial"] = calcular_regresion_potencial(X, y)
     
     # Calcular regresión logarítmica
-    resultados["logarithmic"] = calcular_regresion_logaritmica(X, y)
+    resultados["Logaritmica"] = calcular_regresion_logaritmica(X, y)
     
     # Calcular regresión polinomial de grado 2
-    resultados["polynomial_2"] = calcular_regresion_polinomial_grado2(X, y)
+    resultados["Polinomial_2"] = calcular_regresion_polinomial_grado2(X, y)
     
     return resultados

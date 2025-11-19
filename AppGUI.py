@@ -158,9 +158,9 @@ def crear_tabla_metodos(container, metodo_seleccionado):
     nombres = [
         ("Lineal", "Regresión Lineal (Sklearn)"),
         ("Exponencial", "Regresión Exponencial"),
-        ("potencial", "Regresión Potencial"),
-        ("logaritmica", "Regresión Logarítmica"),
-        ("polinomial_2", "Regresión Polinomial Grado 2"),
+        ("Potencial", "Regresión Potencial"),
+        ("Logaritmica", "Regresión Logarítmica"),
+        ("Polinomial_2", "Regresión Polinomial Grado 2"),
     ]
     
     for i, (key, name) in enumerate(nombres, start=1):
@@ -262,13 +262,13 @@ def actualizar_tabla(rows, resultados):
                 comps["formula"].config(
                     text=f"y = {r['intercept']:.4f} + {r['coef']:.4f}x"
                 )
-            elif key == "exponential":
+            elif key == "Exponencial":
                 comps["formula"].config(text=f"y = {r['a']:.4f} * e^{r['b']:.4f}x")
-            elif key == "power":
+            elif key == "Potencial":
                 comps["formula"].config(text=f"y = {r['a']:.4f} * x^{r['b']:.4f}")
-            elif key == "logarithmic":
+            elif key == "Logaritmica":
                 comps["formula"].config(text=f"y = {r['a']:.4f} + {r['b']:.4f}*ln(x)")
-            elif key == "polynomial_2":
+            elif key == "Polinomial_2":
                 comps["formula"].config(text=f"y = {r['a']:.4f} + {r['b']:.4f}x + {r['c']:.4f}x²")
             
             comps["name"].config(fg="green" if key == mejor_key else "black")
@@ -312,19 +312,19 @@ def mostrar_grafico(ax, canvas, lbl_info, metodo, resultados, xs, ys):
         y_line = r["intercept"] + r["coef"] * X_grid
         formula = f"y = {r['intercept']:.6f} + {r['coef']:.6f}x"
     elif metodo == "Exponencial":
-        y_line = r["a"] * np.exp(r["b"] * X_sorted)
+        y_line = r["a"] * np.exp(r["b"] * X_grid)
         formula = f"y = {r['a']:.6f} * e^{r['b']:.6f}x"
-    elif metodo == "potencial":
-        y_line = r["a"] * np.power(X_sorted, r["b"])
+    elif metodo == "Potencial":
+        y_line = r["a"] * np.power(X_grid, r["b"])
         formula = f"y = {r['a']:.6f} * x^{r['b']:.6f}"
-    elif metodo == "logaritmica":
-        y_line = r["a"] + r["b"] * np.log(X_sorted)
+    elif metodo == "Logaritmica":
+        y_line = r["a"] + r["b"] * np.log(X_grid)
         formula = f"y = {r['a']:.6f} + {r['b']:.6f}*ln(x)"
-    elif metodo == "polinomial_2":
-        y_line = r["a"] + r["b"] * X_sorted + r["c"] * X_sorted**2
+    elif metodo == "Polinomial_2":
+        y_line = r["a"] + r["b"] * X_grid + r["c"] * X_grid**2
         formula = f"y = {r['a']:.6f} + {r['b']:.6f}x + {r['c']:.6f}x²"
 
-    ax.plot(X_grid, y_line, color="#e74c3c", label="Modelo")
+    ax.plot(X_grid, y_line, color="#e74c3c", label="Modelo") # type: ignore
 
     ax.set_title("Modelo Seleccionado")
     ax.set_xlabel("X")
@@ -339,7 +339,7 @@ def mostrar_grafico(ax, canvas, lbl_info, metodo, resultados, xs, ys):
 
     info = (
         f"Método: {metodo}\n"
-        f"Fórmula: {formula}\n"
+        f"Fórmula: {formula}\n" # type: ignore
         f"R2: {r['r2']:.6f} | MSE: {r['mse']:.6f} | RMSE: {r['rmse']:.6f}"
     )
     lbl_info.config(text=info)
@@ -434,9 +434,9 @@ def inicializar_interfaz(master):
         advertencias = []
         if resultados_calc["Exponencial"] is None:
             advertencias.append("Exponencial (todos los y deben ser > 0)")
-        if resultados_calc["potencial"] is None:
+        if resultados_calc["Potencial"] is None:
             advertencias.append("Potencial (todos los x e y deben ser > 0)")
-        if resultados_calc["logaritmica"] is None:
+        if resultados_calc["Logaritmica"] is None:
             advertencias.append("Logarítmica (todos los x deben ser > 0)")
         
         if advertencias:
