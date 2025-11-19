@@ -113,10 +113,29 @@ def update_model_xy(model_id: int, x, y) -> bool:
         conn.close()
 
 
+def delete_model(model_id: int) -> bool:
+    """
+    Delete a model from the database by id.
+    Returns True if a row was actually deleted.
+    """
+    query = """
+        DELETE FROM regression_model
+        WHERE id = ?
+    """
+    conn = get_connection()
+    try:
+        cur = conn.execute(query, (model_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 __all__ = [
     "get_connection",
     "search_models",
     "get_model_xy_by_id",
     "insert_model",
     "update_model_xy",
+    "delete_model",
 ]

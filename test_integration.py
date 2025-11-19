@@ -34,7 +34,7 @@ def test_integration():
     
     # Verificar resultados de regresión lineal
     print("\n4. Linear Regression Results:")
-    lr_result = resultados["linear_sklearn"]
+    lr_result = resultados["Lineal"]
     print(f"   Formula: y = {lr_result['intercept']:.4f} + {lr_result['coef']:.4f}x")
     print(f"   R²: {lr_result['r2']:.6f}")
     print(f"   MSE: {lr_result['mse']:.6f}")
@@ -42,7 +42,7 @@ def test_integration():
     
     # Verificar resultados de regresión exponencial
     print("\n5. Exponential Regression Results:")
-    exp_result = resultados["exponential"]
+    exp_result = resultados["Exponencial"]
     if exp_result is not None:
         print(f"   Formula: y = {exp_result['a']:.4f} * e^({exp_result['b']:.4f}x)")
         print(f"   R²: {exp_result['r2']:.6f}")
@@ -60,7 +60,7 @@ def test_integration():
     
     # Simular graficar el modelo seleccionado
     print("\n7. Simulating plot data generation...")
-    metodo = "linear_sklearn"
+    metodo = "Lineal"
     r = resultados[metodo]
     X = np.array(xs)
     y = np.array(ys)
@@ -69,7 +69,7 @@ def test_integration():
     orden = np.argsort(X)
     X_sorted = X[orden]
     
-    if metodo == "linear_sklearn":
+    if metodo == "Lineal":
         y_line = r["intercept"] + r["coef"] * X_sorted
         formula = f"y = {r['intercept']:.6f} + {r['coef']:.6f}x"
     else:
