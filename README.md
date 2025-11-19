@@ -13,16 +13,6 @@ Aplicación GUI para comparar dos enfoques de regresión sobre pares de datos (x
 python3 App.py
 ```
 
-## 📁 Estructura Modular
-
-El proyecto ha sido refactorizado en módulos independientes:
-
-- **`OperationsApp.py`** - Operaciones matemáticas y cálculos
-- **`AppGUI.py`** - Componentes de interfaz gráfica
-- **`App.py`** - Punto de entrada principal
-
-Ver [ESTRUCTURA_MODULAR.md](ESTRUCTURA_MODULAR.md) para más detalles.
-
 ## 📦 Dependencias
 
 ```bash
