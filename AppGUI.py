@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import OperationsApp
+import Queries
 
 matplotlib.use("TkAgg")
 
@@ -49,6 +50,105 @@ class ScrollableFrame(tk.Frame):
     def _on_mousewheel(self, event):
         delta = int(-1 * (event.delta / 120))
         self.canvas.yview_scroll(delta, "units")
+
+
+def search_models(container, txt_x, txt_y, id_session_var, btn_editar):
+    """
+    Crea la UI de búsqueda de modelos en la base de datos.
+    
+    Args:
+        container: Contenedor donde se colocará la búsqueda
+        txt_x: Widget de texto para valores X
+        txt_y: Widget de texto para valores Y
+        id_session_var: Variable IntVar para guardar el ID del modelo seleccionado
+        btn_editar: Botón de editar que se habilitará al seleccionar un modelo
+        
+    Returns:
+        Tupla (frame_search, entry_search) con el frame y el entry de búsqueda
+    """
+    frame_search = tk.LabelFrame(container, text="Buscar Modelo en Base de Datos")
+    frame_search.pack(fill="x", padx=10, pady=5)
+    
+    # Entry para búsqueda
+    entry_search = tk.Entry(frame_search, font=("Arial", 12))
+    entry_search.pack(fill="x", padx=5, pady=5)
+    
+    # Frame scrollable para resultados
+    results_frame = tk.Frame(frame_search, height=150)
+    results_frame.pack(fill="both", expand=True, padx=5, pady=5)
+    results_frame.pack_propagate(False)
+    
+    canvas_results = tk.Canvas(results_frame, height=150)
+    scrollbar_results = tk.Scrollbar(results_frame, orient="vertical", command=canvas_results.yview)
+    scrollable_results = tk.Frame(canvas_results)
+    
+    scrollable_results.bind(
+        "<Configure>",
+        lambda e: canvas_results.configure(scrollregion=canvas_results.bbox("all"))
+    )
+    
+    canvas_results.create_window((0, 0), window=scrollable_results, anchor="nw")
+    canvas_results.configure(yscrollcommand=scrollbar_results.set)
+    
+    canvas_results.pack(side="left", fill="both", expand=True)
+    scrollbar_results.pack(side="right", fill="y")
+    
+    def update_search_results(*args):
+        """Actualiza los resultados de búsqueda mientras el usuario escribe."""
+        # Limpiar resultados previos
+        for widget in scrollable_results.winfo_children():
+            widget.destroy()
+        
+        search_text = entry_search.get()
+        if not search_text.strip():
+            return
+        
+        # Buscar modelos que coincidan
+        results = Queries.search_models(search_text)
+        
+        if not results:
+            lbl_no_results = tk.Label(scrollable_results, text="No se encontraron modelos", 
+                                     fg="gray", font=("Arial", 10, "italic"))
+            lbl_no_results.pack(pady=10)
+            return
+        
+        # Mostrar cada resultado con botón "Utilizar"
+        for model_id, model_name in results:
+            frame_result = tk.Frame(scrollable_results)
+            frame_result.pack(fill="x", padx=5, pady=2)
+            
+            lbl_name = tk.Label(frame_result, text=model_name, anchor="w", font=("Arial", 10))
+            lbl_name.pack(side="left", fill="x", expand=True)
+            
+            def use_model(mid=model_id):
+                """Carga el modelo seleccionado en los campos X e Y."""
+                xy_data = Queries.get_model_xy_by_id(mid)
+                if xy_data:
+                    x_str, y_str = xy_data
+                    txt_x.delete("1.0", tk.END)
+                    txt_x.insert("1.0", x_str)
+                    txt_y.delete("1.0", tk.END)
+                    txt_y.insert("1.0", y_str)
+                    
+                    # Guardar ID en variable de sesión
+                    id_session_var.set(mid)
+                    
+                    # Habilitar botón editar
+                    btn_editar.config(state=tk.NORMAL)
+                    
+                    messagebox.showinfo("Modelo Cargado", 
+                                       f"Modelo '{model_name}' (ID: {mid}) cargado exitosamente.")
+                else:
+                    messagebox.showerror("Error", "No se pudo cargar el modelo.")
+            
+            btn_use = tk.Button(frame_result, text="Utilizar", command=use_model,
+                              bg="#3498db", fg="white", width=10)
+            btn_use.pack(side="right", padx=2)
+    
+    # Vincular evento de escritura al entry
+    entry_search.bind("<KeyRelease>", update_search_results)
+    
+    return frame_search, entry_search
 
 
 def crear_titulo(container):
@@ -96,7 +196,8 @@ def crear_inputs(container):
     return txt_x, txt_y
 
 
-def crear_botones(container, calcular_callback, graficar_callback, limpiar_callback):
+def crear_botones(container, calcular_callback, graficar_callback, limpiar_callback, 
+                  guardar_callback, editar_callback):
     """
     Crea los botones de la aplicación.
     
@@ -105,6 +206,11 @@ def crear_botones(container, calcular_callback, graficar_callback, limpiar_callb
         calcular_callback: Función a llamar al presionar "Calcular Modelos"
         graficar_callback: Función a llamar al presionar "Mostrar Gráfica"
         limpiar_callback: Función a llamar al presionar "Limpiar"
+        guardar_callback: Función a llamar al presionar "Guardar"
+        editar_callback: Función a llamar al presionar "Editar"
+        
+    Returns:
+        Tupla (btn_guardar, btn_editar) con los botones de base de datos
     """
     frame_btns = tk.Frame(container)
     frame_btns.pack(fill="x", padx=10, pady=5)
@@ -132,6 +238,28 @@ def crear_botones(container, calcular_callback, graficar_callback, limpiar_callb
         bg="#c0392b", 
         fg="white"
     ).pack(side="left", padx=5)
+    
+    # Botones de base de datos a la derecha
+    btn_editar = tk.Button(
+        frame_btns,
+        text="Editar",
+        command=editar_callback,
+        bg="#f39c12",
+        fg="white",
+        state=tk.DISABLED
+    )
+    btn_editar.pack(side="right", padx=5)
+    
+    btn_guardar = tk.Button(
+        frame_btns,
+        text="Guardar",
+        command=guardar_callback,
+        bg="#16a085",
+        fg="white"
+    )
+    btn_guardar.pack(side="right", padx=5)
+    
+    return btn_guardar, btn_editar
 
 
 def crear_tabla_metodos(container, metodo_seleccionado):
@@ -393,20 +521,26 @@ def inicializar_interfaz(master):
         Diccionario con todos los componentes de la interfaz
     """
     master.title("Modelos de Regresión")
-    master.geometry("900x650")
+    master.geometry("900x750")
 
     # Variables de estado
     resultados = {}
     metodo_seleccionado = tk.StringVar(value="Lineal")
+    id_session = tk.IntVar(value=0)  # 0 significa que no hay modelo seleccionado
 
     # Crear scroll frame
     scroll = ScrollableFrame(master)
     scroll.pack(fill="both", expand=True)
     container = scroll.interior
 
-    # Crear componentes
+    # Crear componentes en el orden correcto
     lbl_titulo = crear_titulo(container)
+    
+    # Crear inputs primero (necesarios para search_models)
     txt_x, txt_y = crear_inputs(container)
+    
+    # Crear placeholder para btn_editar
+    btn_editar = None
     
     # Definir callbacks que usan OperationsApp
     def calcular_modelos_callback():
@@ -464,8 +598,140 @@ def inicializar_interfaz(master):
 
     def limpiar_callback():
         limpiar_interfaz(txt_x, txt_y, rows, ax, canvas, lbl_info, lbl_titulo, resultados)
-
-    crear_botones(container, calcular_modelos_callback, mostrar_grafica_callback, limpiar_callback)
+        # Limpiar id_session y deshabilitar botón editar
+        id_session.set(0)
+        if btn_editar:
+            btn_editar.config(state=tk.DISABLED)
+    
+    def guardar_callback():
+        """Guarda un nuevo modelo en la base de datos."""
+        # Obtener valores actuales de X e Y
+        try:
+            xs = OperationsApp.parse_numbers(txt_x.get("1.0", tk.END))
+            ys = OperationsApp.parse_numbers(txt_y.get("1.0", tk.END))
+        except ValueError as e:
+            messagebox.showerror("Error", f"Datos inválidos: {e}")
+            return
+        
+        if len(xs) != len(ys) or len(xs) < 2:
+            messagebox.showerror("Error", "Debe proporcionar datos válidos para X e Y.")
+            return
+        
+        # Mostrar ventana emergente para pedir el nombre del modelo
+        popup = tk.Toplevel(master)
+        popup.title("Guardar Modelo")
+        popup.geometry("350x150")
+        popup.grab_set()  # Hacer modal
+        
+        tk.Label(popup, text="Ingrese el nombre del modelo:", 
+                font=("Arial", 11)).pack(pady=10)
+        
+        entry_name = tk.Entry(popup, font=("Arial", 11), width=30)
+        entry_name.pack(pady=5)
+        entry_name.focus()
+        
+        frame_btns_popup = tk.Frame(popup)
+        frame_btns_popup.pack(pady=15)
+        
+        def save_model():
+            model_name = entry_name.get().strip()
+            if not model_name:
+                messagebox.showerror("Error", "El nombre del modelo no puede estar vacío.", 
+                                   parent=popup)
+                return
+            
+            try:
+                # Convertir listas a strings separados por comas
+                x_str = ",".join(str(x) for x in xs)
+                y_str = ",".join(str(y) for y in ys)
+                
+                # Insertar nuevo modelo
+                new_id = Queries.insert_model(model_name, x_str, y_str)
+                
+                # Actualizar id_session con el nuevo ID
+                id_session.set(new_id)
+                
+                # Habilitar botón editar
+                if btn_editar:
+                    btn_editar.config(state=tk.NORMAL)
+                
+                popup.destroy()
+                messagebox.showinfo("Éxito", 
+                                   f"Modelo '{model_name}' guardado con ID {new_id}.")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo guardar el modelo: {e}", 
+                                   parent=popup)
+        
+        def cancel_save():
+            popup.destroy()
+        
+        tk.Button(frame_btns_popup, text="Guardar", command=save_model,
+                 bg="#16a085", fg="white", width=10).pack(side="left", padx=5)
+        tk.Button(frame_btns_popup, text="Cancelar", command=cancel_save,
+                 bg="#95a5a6", fg="white", width=10).pack(side="left", padx=5)
+        
+        # Permitir guardar con Enter
+        entry_name.bind("<Return>", lambda e: save_model())
+    
+    def editar_callback():
+        """Edita el modelo actualmente seleccionado (id_session)."""
+        current_id = id_session.get()
+        if current_id == 0:
+            messagebox.showwarning("Advertencia", 
+                                  "No hay ningún modelo seleccionado para editar.")
+            return
+        
+        # Obtener valores actuales de X e Y
+        try:
+            xs = OperationsApp.parse_numbers(txt_x.get("1.0", tk.END))
+            ys = OperationsApp.parse_numbers(txt_y.get("1.0", tk.END))
+        except ValueError as e:
+            messagebox.showerror("Error", f"Datos inválidos: {e}")
+            return
+        
+        if len(xs) != len(ys) or len(xs) < 2:
+            messagebox.showerror("Error", "Debe proporcionar datos válidos para X e Y.")
+            return
+        
+        # Confirmar edición
+        result = messagebox.askyesno("Confirmar Edición", 
+                                     f"¿Desea actualizar el modelo con ID {current_id}?")
+        if not result:
+            return
+        
+        try:
+            # Convertir listas a strings separados por comas
+            x_str = ",".join(str(x) for x in xs)
+            y_str = ",".join(str(y) for y in ys)
+            
+            # Actualizar modelo existente
+            success = Queries.update_model_xy(current_id, x_str, y_str)
+            
+            if success:
+                messagebox.showinfo("Éxito", 
+                                   f"Modelo ID {current_id} actualizado correctamente.")
+            else:
+                messagebox.showerror("Error", 
+                                   f"No se pudo actualizar el modelo ID {current_id}.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al actualizar: {e}")
+    
+    # Crear botones (retorna los botones de DB)
+    btn_guardar, btn_editar = crear_botones(container, calcular_modelos_callback, 
+                                            mostrar_grafica_callback, limpiar_callback,
+                                            guardar_callback, editar_callback)
+    
+    # Ahora crear la búsqueda (necesita btn_editar y los txt_x, txt_y)
+    frame_search, entry_search = search_models(container, txt_x, txt_y, id_session, btn_editar)
+    
+    # Reordenar: búsqueda debe estar después del título y antes de los inputs
+    frame_search.pack_forget()
+    frame_search.pack(after=lbl_titulo, fill="x", padx=10, pady=5)
+    
+    # Los inputs deben estar después de la búsqueda
+    txt_x.master.master.pack_forget()  # frame_inputs que contiene txt_x y txt_y
+    txt_x.master.master.pack(after=frame_search, fill="x", padx=10)
+    
     rows = crear_tabla_metodos(container, metodo_seleccionado)
     fig, ax, canvas = crear_grafico(container)
     lbl_info = crear_label_info(container)
@@ -481,4 +747,7 @@ def inicializar_interfaz(master):
         "canvas": canvas,
         "lbl_info": lbl_info,
         "lbl_titulo": lbl_titulo,
+        "id_session": id_session,
+        "btn_editar": btn_editar,
+        "btn_guardar": btn_guardar,
     }
