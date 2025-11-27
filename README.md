@@ -7,16 +7,16 @@ Aplicación GUI para comparar dos enfoques de regresión sobre pares de datos (x
 - **Regresión Lineal** usando scikit-learn
 - **Regresión Exponencial** (y = a * e^(bx)) usando linealización
 
+## 📦 Dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
 ## 🚀 Cómo Ejecutar
 
 ```bash
 python3 App.py
-```
-
-## 📦 Dependencias
-
-```bash
-pip install numpy scikit-learn matplotlib
 ```
 
 ## ✅ Tests
