@@ -12,16 +12,25 @@ Funciones:
 
 import tkinter as tk
 import AppGUI
+from tkinter import messagebox
 
+# Guardar referencia a la función original
+_original_inicializar_interfaz = AppGUI.inicializar_interfaz
+
+def _safe_inicializar_interfaz(root):
+    try:
+        _original_inicializar_interfaz(root)
+    except Exception as e:
+        root.withdraw()
+        messagebox.showerror("Error", str(e))
+
+# Reemplazar la función por la versión segura
+AppGUI.inicializar_interfaz = _safe_inicializar_interfaz
 
 def main():
-    """
-    Función principal que inicia la aplicación.
-    """
     root = tk.Tk()
     AppGUI.inicializar_interfaz(root)
     root.mainloop()
-
 
 if __name__ == "__main__":
     main()

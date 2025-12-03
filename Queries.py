@@ -3,7 +3,8 @@ import sqlite3
 from typing import List, Tuple, Optional, Union, Sequence
 
 # Absolute path to the SQLite database file (adjust if needed)
-DB_PATH = os.path.join(os.path.dirname(__file__), "regressionModel.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "regressionModel.db")
 
 
 def get_connection() -> sqlite3.Connection:
