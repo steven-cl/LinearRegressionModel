@@ -3,6 +3,10 @@ Script de prueba para verificar que los módulos refactorizados funcionan correc
 """
 
 import numpy as np
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import OperationsApp
 
 
@@ -190,16 +194,16 @@ def test_calcular_todos_modelos():
     resultados = OperationsApp.calcular_todos_modelos(xs, ys)
     
     # Verificar que todos los modelos están en el resultado
-    expected_models = ["linear_sklearn", "exponential", "power", "logarithmic", "polynomial_2"]
+    expected_models = ["Lineal", "Exponencial", "Potencial", "Logaritmica", "Polinomial_2"]
     for model in expected_models:
         assert model in resultados, f"{model} not in resultados"
     
     # Verificar que los resultados no son None
-    assert resultados["linear_sklearn"] is not None, "linear_sklearn result is None"
-    assert resultados["exponential"] is not None, "exponential result is None"
-    assert resultados["power"] is not None, "power result is None"
-    assert resultados["logarithmic"] is not None, "logarithmic result is None"
-    assert resultados["polynomial_2"] is not None, "polynomial_2 result is None"
+    assert resultados["Lineal"] is not None, "Lineal result is None"
+    assert resultados["Exponencial"] is not None, "Exponencial result is None"
+    assert resultados["Potencial"] is not None, "Potencial result is None"
+    assert resultados["Logaritmica"] is not None, "Logaritmica result is None"
+    assert resultados["Polinomial_2"] is not None, "Polinomial_2 result is None"
     
     print("  Linear regression calculated")
     print("  Exponential regression calculated")
